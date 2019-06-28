@@ -1,0 +1,49 @@
+1）Docker Stack 部署多个集群服务
+docker-stack.yml文件内容
+
+version: "3.4"
+services:
+  mynginx:
+    image: nginx:latest
+    deploy:
+      endpoint_mode: vip
+      replicas: 1
+    ports:
+      - "8090:80"
+  demo:
+    image: spring-boot:1.0.0
+    deploy:
+      endpoint_mode: vip
+      replicas: 2
+    ports:
+      - "8091:8080"
+    depends_on:
+      - mynginx
+networks:
+  default:
+    external:
+      name: zxs-overlay
+                     
+					 
+创建一个overlay类型的虚拟网络 
+#docker network create --driver overlay zxs-overlay
+
+部署新的堆栈或更新现有堆栈
+#docker stack deploy -c  docker-stack.yml mytest 
+  
+列出现有堆栈
+#docker stack ls 
+
+列出堆栈中的任务
+#docker stack ps mytest
+
+删除堆栈
+#docker stack rm mytest 
+
+列出堆栈中的服务
+#docker stack services mytest
+ 
+移除某个堆栈
+#docker stack down mytest
+
+ 

@@ -1,0 +1,97 @@
+1）master初始化创建Swarm集群
+--advertise-addr参数表示其它swarm中的worker节点使用此ip地址与manager联系
+（要保存初始化后token，因为在节点加入时要使用token作为通讯的密钥）
+
+#docker swarm init --advertise-addr 192.168.0.101
+	
+上面命令执行后，该机器自动加入到swarm集群。这个会创建一个集群token，获取全球唯一的 token，作为集群唯一标识。后续将其他节点加入集群都会用到这个token值
+docker swarm join --token SWMTKN-1-4t3vftqt439f7kwpihapam74txkyxmpojbdhbfhjwr12fkmrh9-1rcj0wepwx88glvwlmxuslnux 192.168.0.101:2377
+
+2）添加节点到swarm集群中
+所有节点执行　
+#docker swarm join --token SWMTKN-1-4t3vftqt439f7kwpihapam74txkyxmpojbdhbfhjwr12fkmrh9-1rcj0wepwx88glvwlmxuslnux 192.168.0.101:2377
+
+到此Swarm集群就创建好了
+
+增加manger节点，通过下面命令获取token执行
+#docker swarm join-token manager
+
+如果节点token忘记了可以根据下面命令执行找回token到指定的机器执行
+#docker swarm join-token worker
+
+3）docker  node 命令　
+
+列出节点
+#docker node ls
+
+查看节点的详细信息(包括ip host CPU 内存资源等信息)
+#docker node inspect swarm-worker1
+
+将普通节点升级为管理节点
+#docker node promote swarm-worker1
+
+将管理节点降级为普通节点
+#docker node demote swarm-worker1
+
+查看集群中运行的任务
+#docker node ps
+
+从swarm集群中删除节点(down了的节点才可以删除)
+#docker node rm swarm-worker1
+
+
+update改变集群节点状态
+
+docker node update --help
+
+Options:
+      --availability string   Availability of the node ("active"|"pause"|"drain")
+      --label-add list        Add or update a node label (key=value)
+      --label-rm list         Remove a node label if exists
+      --role string           Role of the node ("worker"|"manager")
+	  
+变更节点状态正常(active:节点状态正常,pause:节点挂起、暂停,drain:架空的节点)
+#docker node update --availability pause swarm-worker1
+
+工作节点排除manager，manager只作为管理节点
+#docker node update --availability drain swarm-manager
+
+
+
+4）在Swarm中部署服务(类似于在docker里的容器概念)
+创建服务
+#docker service create --name nginx --detach=false nginx
+
+查看服务信息
+#docker service ls
+
+更新服务信息(如:对外映射端口)
+#docker service update --publish-add 8080:80 nginx
+
+此时访问http://192.168.0.101:8080/
+
+查看具体运行的服务
+#docker service ps nginx
+
+为服务扩容,即增加副本数(docker service scale 服务名=副本数)
+#docker service scale nginx=3
+
+
+服务更新镜像版本(docker service update --image 镜像:tag 服务名)
+#docker service update --image nginx:1.13.5 nginx
+
+手动镜像回滚(镜像运行出错了，想要回滚到上个版本的镜像)
+#docker service update --rollback nginx
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ cat  /etc/nginx/conf.d/default.conf 
+ 
+ cd /usr/share/nginx/html
+ 
+ echo "nginx test" > index.html 
